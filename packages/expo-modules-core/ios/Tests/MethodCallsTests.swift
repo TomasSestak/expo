@@ -58,6 +58,26 @@ class MethodCallsTests: XCTestCase {
     test_methodReturning(value: ["expo", "modules", "core"])
   }
 
+  func test_methodWithStructs() {
+    struct TestRecord: Record {
+      @Field var message: String = ""
+    }
+
+    let expect = expectation(description: "method gets called")
+    let module = CustomModule(appContext: appContext) {
+      $0.method(methodName) { (a: TestRecord) in
+        return a.message
+      }
+    }
+
+    let dict = ["message": "Hello Expo!"]
+    ModuleHolder(module: module).call(method: methodName, args: [dict]) { value, error in
+      XCTAssertEqual(value as? String, dict["message"])
+      expect.fulfill()
+    }
+    waitForExpectations(timeout: 1)
+  }
+
   func test_tooManyArguments() {
     let expect = expectation(description: "method gets called")
     let module = CustomModule(appContext: appContext) {
