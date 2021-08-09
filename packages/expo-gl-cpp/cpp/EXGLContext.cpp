@@ -5,7 +5,8 @@ namespace gl_cpp {
 
 constexpr const char *OnJSRuntimeDestroyPropertyName = "__EXGLOnJsRuntimeDestroy";
 
-EXGLContext::EXGLContext(jsi::Runtime &runtime, UEXGLContextId ctxId) : ctxId(ctxId) {
+EXGLContext::EXGLContext(jsi::Runtime &runtime, UEXGLContextId ctxId, std::function<void(void)> flushMethod) : ctxId(ctxId) {
+  this->flushOnGLThread = flushMethod;
   auto viewport = prepareOpenGLESContext();
   createWebGLRenderer(runtime, this, viewport);
   tryRegisterOnJSRuntimeDestroy(runtime);

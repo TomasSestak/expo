@@ -15,8 +15,15 @@ thread_local JNIEnv* threadLocalEnv;
 
 JNIEXPORT jint JNICALL
 Java_expo_modules_gl_cpp_EXGL_EXGLContextCreate
-(JNIEnv *env, jclass clazz, jlong jsiPtr) {
-  return UEXGLContextCreate((void*) jsiPtr);
+(JNIEnv *env, jclass clazz, jlong jsiPtr, jobject glContext) {
+  jclass GLContextClass = env->GetObjectClass(glContext);
+  jobject glContextRef = env->NewGlobalRef(glContext);
+  jmethodID flushMethodRef = env->GetMethodID(GLContextClass, "flush", "()V");
+
+  std::function<void(void)> flushMethod = [glContextRef, flushMethodRef] {
+    threadLocalEnv->CallVoidMethod(glContextRef, flushMethodRef);
+  };
+  return UEXGLContextCreate((void*) jsiPtr, flushMethod);
 }
 
 JNIEXPORT void JNICALL

@@ -4,8 +4,8 @@
 
 using namespace expo::gl_cpp;
 
-UEXGLContextId UEXGLContextCreate(void *jsiPtr) {
-  return EXGLContextCreate(*reinterpret_cast<jsi::Runtime *>(jsiPtr));
+UEXGLContextId UEXGLContextCreate(void *jsiPtr, std::function<void(void)> flushMethod) {
+  return EXGLContextCreate(*reinterpret_cast<jsi::Runtime *>(jsiPtr), flushMethod);
 }
 
 void UEXGLContextSetFlushMethod(UEXGLContextId exglCtxId, std::function<void(void)> flushMethod) {

@@ -31,20 +31,25 @@ typedef unsigned int UEXGLContextId;
 // No EXGL object has the id 0, so that can be used as a 'null' value.
 typedef unsigned int UEXGLObjectId;
 
-// [JS thread] Create an EXGL context and return its id number. Saves the
-// JavaScript interface object (has a WebGLRenderingContext-style API) at
-// `global.__EXGLContexts[id]` in JavaScript.
-UEXGLContextId UEXGLContextCreate(void *runtime);
-
 #ifdef __cplusplus
 // [JS thread] Pass function to cpp that will run GL operations on GL thread
 void UEXGLContextSetFlushMethod(UEXGLContextId exglCtxId, std::function<void(void)> flushMethod);
 #endif
 
 #ifdef __APPLE__
+// [JS thread] Create an EXGL context and return its id number. Saves the
+// JavaScript interface object (has a WebGLRenderingContext-style API) at
+// `global.__EXGLContexts[id]` in JavaScript.
+UEXGLContextId UEXGLContextCreate(void *runtime, std::function<void(void)> flushMethod);
 // Objective-C wrapper for UEXGLContextSetFlushMethod
 typedef void (^UEXGLFlushMethodBlock)(void);
 void UEXGLContextSetFlushMethodObjc(UEXGLContextId exglCtxId, UEXGLFlushMethodBlock flushMethod);
+#else
+// [JS thread] Create an EXGL context and return its id number. Saves the
+// JavaScript interface object (has a WebGLRenderingContext-style API) at
+// `global.__EXGLContexts[id]` in JavaScript.
+UEXGLContextId UEXGLContextCreate(void *runtime, std::function<void(void)> flushMethod);
+
 #endif
 
 // [Any thread] Check whether we should redraw the surface

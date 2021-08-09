@@ -92,7 +92,7 @@ public class GLContext {
         long jsContextRef = jsContextProvider.getJavaScriptContextRef();
         synchronized (uiManager) {
           if (jsContextRef != 0) {
-            mEXGLCtxId = EXGLContextCreate(jsContextRef);
+            mEXGLCtxId = EXGLContextCreate(jsContextRef, glContext);
           }
         }
         EXGLRegisterThread();

@@ -7,7 +7,7 @@ public class EXGL {
   static {
     SoLoader.loadLibrary("expo-gl");
   }
-  public static native int EXGLContextCreate(long jsCtxPtr);
+  public static native int EXGLContextCreate(long jsCtxPtr, Object glContext);
 
   public static native void EXGLContextDestroy(int exglCtxId);
   public static native void EXGLContextFlush(int exglCtxId);
