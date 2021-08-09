@@ -15,6 +15,7 @@
 
 #include "EXJsiUtils.h"
 #include "TypedArrayApi.h"
+#include "EXWebGLRenderer.h"
 
 namespace expo {
 namespace gl_cpp {
@@ -41,9 +42,17 @@ template <typename T>
 inline constexpr bool is_supported_vector = std::is_same_v<std::vector<uint32_t>, T> ||
     std::is_same_v<std::vector<int32_t>, T> || std::is_same_v<std::vector<float>, T>;
 
+// if T = EXWebGLClass then return_type = UEXGLObjectId else return_type = T
+template <typename T>
+using type_map = typename std::conditional<
+  std::is_same_v<EXWebGLClass, T>,
+  UEXGLObjectId,
+  T
+>::type;
+
 template <typename T>
 inline std::
-    enable_if_t<!(is_integral_v<T> || std::is_floating_point_v<T> || is_supported_vector<T>), T>
+    enable_if_t<!(is_integral_v<T> || std::is_floating_point_v<T> || is_supported_vector<T>), type_map<T>>
     unpackArg(jsi::Runtime &runtime, const jsi::Value *jsArgv);
 
 //
@@ -112,6 +121,16 @@ inline jsi::ArrayBuffer unpackArg<jsi::ArrayBuffer>(
     throw std::runtime_error("value is not an ArrayBuffer");
   }
   return jsArgv->asObject(runtime).getArrayBuffer(runtime);
+}
+
+template <>
+inline UEXGLObjectId unpackArg<EXWebGLClass>(
+    jsi::Runtime &runtime,
+    const jsi::Value *jsArgv) {
+  if (!jsArgv->isObject() || !jsArgv->asObject(runtime).hasProperty(runtime, "id")) {
+    throw std::runtime_error("value is not an WebGLObject");
+  }
+  return static_cast<UEXGLObjectId>(jsArgv->asObject(runtime).getProperty(runtime, "id").asNumber());
 }
 
 //

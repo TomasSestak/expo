@@ -48,7 +48,7 @@ inline jsi::Value exglGetActiveInfo(
     return nullptr;
   }
 
-  jsi::Object jsResult(runtime);
+  jsi::Object jsResult = createWebGLObject(runtime, EXWebGLClass::WebGLActiveInfo, {}).asObject(runtime);
   jsResult.setProperty(runtime, "name", jsi::String::createFromUtf8(runtime, name));
   jsResult.setProperty(runtime, "size", size);
   jsResult.setProperty(runtime, "type", static_cast<double>(type));
@@ -111,21 +111,23 @@ inline jsi::Value exglIsObject(
 inline jsi::Value exglGenObject(
     EXGLContext *ctx,
     jsi::Runtime &runtime,
-    std::function<void(GLsizei, UEXGLObjectId *)> func) {
-  return ctx->addFutureToNextBatch(runtime, [=] {
+    std::function<void(GLsizei, UEXGLObjectId *)> func,
+    EXWebGLClass webglClass) {
+  auto id = ctx->addFutureToNextBatch(runtime, [=] {
     GLuint buffer;
     func(1, &buffer);
     return buffer;
   });
-  return nullptr;
+  return createWebGLObject(runtime, webglClass, { std::move(id) });
 }
 
 inline jsi::Value exglCreateObject(
     EXGLContext *ctx,
     jsi::Runtime &runtime,
-    std::function<GLuint()> func) {
-  return ctx->addFutureToNextBatch(runtime, [=] { return func(); });
-  return nullptr;
+    std::function<GLuint()> func,
+    EXWebGLClass webglClass) {
+  auto id = ctx->addFutureToNextBatch(runtime, [=] { return func(); });
+  return createWebGLObject(runtime, webglClass, { std::move(id) });
 }
 
 inline jsi::Value exglDeleteObject(

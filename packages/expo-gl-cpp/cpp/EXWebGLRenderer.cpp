@@ -12,23 +12,11 @@ constexpr const char *EXGLContextsMapPropertyName = "__EXGLContexts";
 void installConstants(jsi::Runtime &runtime, jsi::Object &gl);
 void installWebGLMethods(jsi::Runtime &runtime, jsi::Object &&gl);
 void installWebGL2Methods(jsi::Runtime &runtime, jsi::Object &&gl);
-std::string getConstructorName(EXWebGLClass value);
 
 void createWebGLRenderer(jsi::Runtime &runtime, EXGLContext *ctx, initGlesContext viewport) {
-  jsi::Value constructor = ctx->supportsWebGL2
-      ? runtime.global().getProperty(
-            runtime,
-            jsi::PropNameID::forUtf8(
-                runtime, getConstructorName(EXWebGLClass::WebGL2RenderingContext)))
-      : runtime.global().getProperty(
-            runtime,
-            jsi::PropNameID::forUtf8(
-                runtime, getConstructorName(EXWebGLClass::WebGLRenderingContext)));
-  jsi::Object gl = std::move(constructor)
-                       .asObject(runtime)
-                       .asFunction(runtime)
-                       .callAsConstructor(runtime, {static_cast<double>(ctx->ctxId)})
-                       .asObject(runtime);
+  jsi::Object gl = ctx->supportsWebGL2
+      ? createWebGLObject(runtime, EXWebGLClass::WebGL2RenderingContext, { static_cast<double>(ctx->ctxId) }).asObject(runtime)
+      : createWebGLObject(runtime, EXWebGLClass::WebGLRenderingContext, { static_cast<double>(ctx->ctxId) }).asObject(runtime);
 
   gl.setProperty(runtime, "drawingBufferWidth", viewport.viewportWidth);
   gl.setProperty(runtime, "drawingBufferHeight", viewport.viewportHeight);
@@ -44,6 +32,17 @@ void createWebGLRenderer(jsi::Runtime &runtime, EXGLContext *ctx, initGlesContex
   global.getProperty(runtime, EXGLContextsMapPropertyName)
       .asObject(runtime)
       .setProperty(runtime, jsi::PropNameID::forUtf8(runtime, std::to_string(ctx->ctxId)), gl);
+}
+
+jsi::Value createWebGLObject(
+    jsi::Runtime &runtime,
+    EXWebGLClass webglClass,
+    std::initializer_list<jsi::Value>&& args) {
+  return runtime.global()
+      .getProperty(runtime, jsi::PropNameID::forUtf8(runtime, getConstructorName(webglClass)))
+      .asObject(runtime)
+      .asFunction(runtime)
+      .callAsConstructor(runtime, args);
 }
 
 std::string getConstructorName(EXWebGLClass value) {
@@ -85,24 +84,25 @@ std::string getConstructorName(EXWebGLClass value) {
   }
 }
 
-void attachClass(jsi::Runtime &runtime, EXWebGLClass webglClass, std::function<void(jsi::Runtime &runtime, jsi::Object &&gl)> installPrototypes) {
+void attachClass(
+    jsi::Runtime &runtime,
+    EXWebGLClass webglClass,
+    std::function<void(jsi::Runtime &runtime, jsi::Object &&gl)> installPrototypes) {
   jsi::PropNameID name = jsi::PropNameID::forUtf8(runtime, getConstructorName(webglClass));
   auto constructor = jsi::Function::createFromHostFunction(
       runtime,
       name,
       0,
       [](jsi::Runtime &runtime, const jsi::Value &jsThis, const jsi::Value *jsArgv, size_t argc) {
-        if (argc <= 0) {
-          throw std::runtime_error("missing id");
-        }
         jsi::Object object(runtime);
-        object.setProperty(runtime, "id", jsArgv[0]);
+        if (argc > 0) {
+          object.setProperty(runtime, "id", jsArgv[0]);
+        }
         return object;
       });
   runtime.global().setProperty(runtime, name, constructor);
   installPrototypes(runtime, constructor.getProperty(runtime, "prototype").asObject(runtime));
 }
-
 
 void ensurePrototypes(jsi::Runtime &runtime) {
   if (runtime.global().hasProperty(runtime, "__EXGLConstructorReady")) {
