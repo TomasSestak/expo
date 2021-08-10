@@ -4,7 +4,7 @@ import { getExpotoolsDir } from '../../Directories';
 
 export const JniLibNames = [
   'libfb',
-  'libfbjni',
+  // 'libfbjni',
   'libfolly_json',
   'libglog_init',
   'glog',
@@ -29,11 +29,17 @@ export const JniLibNames = [
   'jsijniprofiler',
   'hermes',
   'hermes-executor-release',
+  'hermes-executor-common-release',
   'hermes-executor-debug',
+  'hermes-executor-common-debug',
   'reanimated',
   'hermes-inspector',
-  'fbjni',
+  // 'fbjni',
   'folly_futures',
+  'react_codegen_reactandroidspec',
+  'react_nativemodule_core',
+  'reactnativeutilsjni',
+  'reactperfloggerjni',
 ];
 
 // this list is used in the shell scripts as well as directly by expotools
